@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
+  annotations:
+    secret.reloader.stakater.com/reload: "{{ .Values.redis.secretName }}"
+    configmap.reloader.stakater.com/reload: "{{ .Chart.Name }},{{ .Values.bpGrouping.configName }}"
   labels:
     app: {{ .Chart.Name }}
 spec:
@@ -76,6 +79,11 @@ spec:
           - name: {{ $name }}
             value: {{ $value | quote }}
           {{- end }}
+          - name: REDIS_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.redis.secretName }}
+                key: username
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -84,8 +92,6 @@ spec:
         volumeMounts:
           - name: {{ .Chart.Name }}
             mountPath: {{ .Values.appConfigMountPath }}
-          - name: {{ .Chart.Name }}-redis-credentials
-            mountPath: {{ .Values.redisSecretsMountPath }}
           - name: {{ .Values.bpGrouping.configName }}
             mountPath: {{ .Values.appConfigMountPath }}/{{ .Values.bpGrouping.configName }}
       serviceAccountName: {{ .Chart.Name }}
@@ -102,10 +108,3 @@ spec:
         - name: {{ .Values.bpGrouping.configName }}
           configMap:
             name: {{ .Values.bpGrouping.configName }}
-        - name: {{ .Chart.Name }}-redis-credentials
-          secret:
-            secretName: {{ .Values.redis.secretName }}
-            items:
-              - key: password
-                path: redis.password
-

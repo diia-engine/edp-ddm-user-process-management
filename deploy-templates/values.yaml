@@ -38,7 +38,6 @@ appConfigMountPath: "/app/config"
 readinessPath: "/user-process-management/actuator/health/readiness"
 livenessPath: "/user-process-management/actuator/health/liveness"
 cephSecretMountPath: "/app/secrets/ceph"
-redisSecretsMountPath: "/app/secrets/redis"
 
 prometheus:
   endpoints:
@@ -64,13 +63,14 @@ storage:
     type: redis
   backend:
     redis:
+      username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
       sentinel:
         master: mymaster
         nodes: ${redis.endpoint}
 
 redis:
-  secretName: redis-auth
+  secretName: redis-user-process-management-user-secret
 
 deployProfile: prod
 
